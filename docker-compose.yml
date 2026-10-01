@@ -32,6 +32,8 @@ services:
       DB_USER: ${DB_USER:-app_user}
       DB_PASSWORD: ${DB_PASSWORD:-app_password}
       JWT_SECRET: local-dev-secret
+      FINALIZATION_FAIL_AT_BATCH_INDEX: ${FINALIZATION_FAIL_AT_BATCH_INDEX:-1}
+      FINALIZATION_FAIL_ONCE: ${FINALIZATION_FAIL_ONCE:-true}
     ports:
       - "${BACKEND_PORT:-21114}:8080"
     depends_on:
