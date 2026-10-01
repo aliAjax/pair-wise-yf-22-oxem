@@ -12,7 +12,38 @@ cp .env.example .env && docker compose up -d
 
 后端健康检查：<http://localhost:21114/health>
 
-后端健康检查：<http://localhost:21114/health>
+### 工单完工收尾
+
+车间主管关工单时不再只看工单状态。提交工单号后，系统汇总各批次的末检结论与未关闭不良：
+有问题则工单暂停并逐批说明，全部合格才放行完工。末检或不良一变，旧的收尾结论即失效，
+重新提交时按最新记录重算。
+
+```bash
+# 提交工单号收尾（汇总各批次末检结论与未关闭不良）
+curl -X POST http://localhost:21114/api/work-order/WO-2026-0001/closing
+
+# 查询当前收尾结论
+curl http://localhost:21114/api/work-order/WO-2026-0001/closing
+
+# 使当前收尾结论失效（末检/不良变化后调用）
+curl -X POST http://localhost:21114/api/work-order/WO-2026-0001/closing/invalidate
+
+# 恢复待完成的收尾（写入失败后从未完成批次恢复，审计不重复写）
+curl -X POST http://localhost:21114/api/work-order/WO-2026-0003/closing/recover
+
+# 关闭不良并使收尾结论失效（不良一变，旧结论失效）
+curl -X POST http://localhost:21114/api/work-order/WO-2026-0002/defects/D-001/close
+```
+
+收尾结论 `verdict`：
+- `QUALIFIED`：各批次末检合格且无未关闭不良，工单完工放行。
+- `UNQUALIFIED`：存在末检不合格或未关闭不良，工单暂停，响应逐批列出原因。
+- `INCOMPLETE`：存在末检缺失或末检缺检验项的批次（旧数据升级按未完成处理），工单暂停。
+
+并发与恢复：
+- 同一工单同时提交收尾只生成一份结果，重复请求取回首次结论。
+- 写入失败时收尾以 `PENDING` 状态保留已完成批次；调用恢复接口从未完成批次继续，审计不重复写入。
+- 置 `APP_CLOSING_FAIL_ON_FIRST_WRITE=true` 可演示首次写入中断与恢复。
 
 
 ## 本地开发方式
@@ -57,6 +88,10 @@ backend/src/routes, controllers, services, models, repositories, middlewares, co
 - WorkOrderStatus: constants/WorkOrderStatus、types/WorkOrderStatus、constructors、logTemplates、errorMessages、筛选器、展示组件/控制器均有引用。
 - InspectionResultStatus: constants/InspectionResultStatus、types/InspectionResultStatus、constructors、logTemplates、errorMessages、筛选器、展示组件/控制器均有引用。
 - DefectSeverity: constants/DefectSeverity、types/DefectSeverity、constructors、logTemplates、errorMessages、筛选器、展示组件/控制器均有引用。
+- ClosingVerdict（新增）: constants/ClosingVerdict、services/WorkOrderClosingService、models/WorkOrderClosing、constructors/WorkOrderClosingDtoFactory、utils/Formatters、controllers/WorkOrderClosingController、logTemplates、errorMessages 均有引用。
+- FinalConclusion（新增）: constants/FinalConclusion、services/WorkOrderClosingService、constructors/WorkOrderClosingDtoFactory、utils/Formatters、errorMessages 均有引用。
+- InspectionType（新增）: constants/InspectionType、services/WorkOrderClosingService（末检判定）、repositories/QualityInspectionRepository 均有引用。
+- 收尾错误码/日志模板（新增）: constants/ErrorCodes、constants/ErrorMessages、constants/LogTemplates、services/WorkOrderClosingService、middlewares/AuditLogMiddleware、middlewares/ErrorHandlerMiddleware、validators/WorkOrderClosingValidator 均有引用。
 
 ## 为什么会牵一发动全身
 

@@ -32,6 +32,8 @@ services:
       DB_USER: ${DB_USER:-app_user}
       DB_PASSWORD: ${DB_PASSWORD:-app_password}
       JWT_SECRET: local-dev-secret
+      # 完工收尾写入失败恢复演示：置 true 时首次收尾写入中断，可调用恢复接口
+      APP_CLOSING_FAIL_ON_FIRST_WRITE: ${APP_CLOSING_FAIL_ON_FIRST_WRITE:-false}
     ports:
       - "${BACKEND_PORT:-21114}:8080"
     depends_on:

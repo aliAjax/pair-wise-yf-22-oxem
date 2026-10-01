@@ -50,6 +50,22 @@ CREATE TABLE IF NOT EXISTS defect_record (
   disposition_status TEXT
 );
 
+CREATE TABLE IF NOT EXISTS work_order_closing (
+  id INTEGER PRIMARY KEY,
+  work_order_no TEXT,
+  verdict TEXT,
+  paused TEXT,
+  batch_count TEXT,
+  qualified_batch_count TEXT,
+  batch_summaries TEXT,
+  fingerprint TEXT,
+  valid TEXT,
+  audit_written TEXT,
+  status TEXT,
+  created_at TEXT,
+  updated_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS audit_log (
   id INTEGER PRIMARY KEY,
   actor TEXT,

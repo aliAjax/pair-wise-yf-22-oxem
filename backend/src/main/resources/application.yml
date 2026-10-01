@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: quality-trace
+
+app:
+  closing:
+    # 完工收尾写入失败恢复演示：置 true 时首次收尾写入在处理完首个批次后中断，
+    # 保留 PENDING 进度，调用 /closing/recover 可从未完成批次恢复且不重复写审计。
+    fail-on-first-write: ${APP_CLOSING_FAIL_ON_FIRST_WRITE:false}
